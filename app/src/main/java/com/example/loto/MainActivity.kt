@@ -4,6 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,7 +24,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.loto.expandedList.Child
 import com.example.loto.expandedList.Header
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
 
 
 class MainActivity : ComponentActivity() {
@@ -43,15 +51,77 @@ fun MainScreen(viewModel: OffersViewModel = androidx.lifecycle.viewmodel.compose
     val items = remember {
         viewModel.content
     }
+    Calendar.getInstance().timeInMillis
+    Scaffold(topBar = { topBar() }) { padding ->
+        LazyColumn(Modifier.padding(padding)) {
+            itemsIndexed(items) { index, item ->
 
-    Scaffold (topBar = {topBar()}){
-        padding->
-        LazyColumn(Modifier.padding(padding)){
-            itemsIndexed(items){ index, item->
+                if (item.type == 0) {
+                    HeaderView(
+                        countryOffer = (item as Header).offer,
+                        onClickItem = {
+                            item.expanded = !item.expanded
+                            if (item.expanded) {
+                                for (child in item.children) {
+                                    viewModel.content.add(index + 1, child)
+                                }
 
-                if(item.type == 0)
-                    ExpandableContainerView(countryOffer = (item as Header).offer)
-                Divider(color= Color.Black)
+                            }
+                            if (!item.expanded && (items[index + 1] is Child)) {
+
+                                viewModel.content.removeRange(
+                                    index + 1,
+                                    index + item.children.size + 1
+                                )
+
+                            }
+                        })
+                    Divider(color = Color.Black)
+                }
+
+
+                if (item.type == 1) {
+                    if (items[index - 1].type == 0) {
+                        /*Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Vreme Izvlacenja",
+                                Modifier.padding(10.dp),
+                                fontSize = 16.sp,
+
+                                )
+                            Text(
+                                text = "Preostalo za uplatu",
+                                Modifier.padding(10.dp),
+                                fontSize = 16.sp,
+
+                                )
+                        }*/
+                        ChildViewLabels()
+                    }
+                    ChildView(item = item, viewModel = viewModel)
+                    /*Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = (item as Child).lottoOffer.time?.let {
+                                SimpleDateFormat("HH:mm").format(Date(it))
+                            } ?: "N/A", Modifier.padding(10.dp))
+                        // Text(text = SimpleDateFormat("mm:ss").format((item as Child).lottoOffer.time?.let { Date(it) }))
+                        Text(
+                            text = viewModel.getTimeLeft((item as Child).lottoOffer),
+
+
+                            Modifier.padding(10.dp)
+                        )
+                    }*/
+                }
+
             }
         }
     }

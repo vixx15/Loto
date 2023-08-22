@@ -9,6 +9,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,29 +26,82 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import com.example.loto.dto.responseOffers.LottoOffer
 import com.example.loto.dto.responseOffers.Offer
+import com.example.loto.expandedList.Base
+import com.example.loto.expandedList.Child
 
 import java.text.SimpleDateFormat
 import java.util.Date
 
 
 @Composable
-fun ExpandableContainerView(countryOffer: Offer) {
-    Box(modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)){
+fun HeaderView(countryOffer: Offer, onClickItem: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .fillMaxWidth()
+    ) {
         Column {
             countryOffer.gameName?.let {
-                Text(text = it, modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(start = 8.dp, end = 8.dp))
+                Text(
+                    text = it,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(start = 8.dp, end = 8.dp)
+                        .clickable(onClick = onClickItem),
+                    fontSize = 22.sp
+                )
             }
-            //ExpandableView(currentLottoOffers = countryOffer.lottoOffer, isExpanded = expanded)
+
         }
     }
+}
+
+@Composable
+fun ChildView(item: Base, viewModel: OffersViewModel) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+
+        Text(
+            text = (item as Child).lottoOffer.time?.let {
+                SimpleDateFormat("HH:mm").format(Date(it))
+            } ?: "N/A", Modifier.padding(10.dp))
+
+        Text(
+            text = viewModel.getTimeLeft((item as Child).lottoOffer),
+            Modifier.padding(10.dp)
+        )
+    }
+}
+
+@Composable
+fun ChildViewLabels() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = "Vreme Izvlacenja",
+            Modifier.padding(10.dp),
+            fontSize = 16.sp,
+
+            )
+        Text(
+            text = "Preostalo za uplatu",
+            Modifier.padding(10.dp),
+            fontSize = 16.sp,
+
+            )
+    }
+
 }
 
 @Composable

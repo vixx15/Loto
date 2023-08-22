@@ -7,15 +7,17 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import com.example.loto.api.NetworkClient
 import com.example.loto.dto.responseOffers.AllOffers
+import com.example.loto.dto.responseOffers.LottoOffer
 import com.example.loto.dto.responseOffers.Offer
 import com.example.loto.expandedList.Base
+import com.example.loto.expandedList.Child
 import com.example.loto.expandedList.Header
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.lang.Exception
+import java.time.Duration
+import java.util.Calendar
+import java.util.concurrent.TimeUnit
 
 class OffersViewModel : ViewModel() {
 
@@ -51,11 +53,35 @@ class OffersViewModel : ViewModel() {
             }
 
             if (selectedOffer != null) {
+
                 for (offer in selectedOffer) {
-                    content.add(Header(offer))
+                    var children = ArrayList<Child>()
+
+
+                    for (lottoOffer in offer.lottoOffer) {
+                        children.add(Child(lottoOffer))
+                    }
+                    content.add(Header(offer, children))
                 }
             }
         }
+    }
+
+    fun getTimeLeft(lottoOffer: LottoOffer): String {
+        val now = Calendar.getInstance().timeInMillis
+        val draftTime = lottoOffer.time ?: 0
+        val allowedTillDraft = lottoOffer.allowBetTimeBefore?.times(1000) ?: 0
+
+        if (draftTime == 0L || allowedTillDraft == 0)
+            return "Not found"
+
+        val result = draftTime - now - allowedTillDraft
+
+        val mm = TimeUnit.MILLISECONDS.toMinutes(result)
+        val ss = TimeUnit.MILLISECONDS.toSeconds(result) % 60
+
+        val formatedString = String.format("%02d:%02d", mm, ss)
+        return formatedString
     }
 
     suspend fun fetchOfferDataAsync(): AllOffers? {
