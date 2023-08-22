@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -36,11 +37,13 @@ import java.util.Date
 
 
 @Composable
-fun ExpandableContainerView(countryOffer: Offer, onClickItem: () -> Unit, expanded: Boolean) {
+fun ExpandableContainerView(countryOffer: Offer) {
     Box(modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)){
         Column {
             countryOffer.gameName?.let {
-                OfferHeader(offerName = it,onClickItem=onClickItem)
+                Text(text = it, modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(start = 8.dp, end = 8.dp))
             }
             //ExpandableView(currentLottoOffers = countryOffer.lottoOffer, isExpanded = expanded)
         }

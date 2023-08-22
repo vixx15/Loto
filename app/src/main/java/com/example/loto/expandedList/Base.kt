@@ -4,7 +4,7 @@ open class Base {
     var type:Int=0
 
     constructor(x:Int){
-        type=1
+        type=x
     }
 
 }

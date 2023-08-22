@@ -2,6 +2,8 @@ package com.example.loto
 
 import android.util.Log
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import com.example.loto.api.NetworkClient
 import com.example.loto.dto.responseOffers.AllOffers
@@ -20,28 +22,15 @@ class OffersViewModel : ViewModel() {
     private var allOffers: AllOffers? = null
     private var tabSelected = mutableIntStateOf(0)
 
-    var content: MutableStateFlow<ArrayList<Base>> = MutableStateFlow(ArrayList())
+
+    private val _content = mutableStateListOf<Base>()
+    val content: SnapshotStateList<Base> = _content
 
     private val myScope = CoroutineScope(Dispatchers.IO)
 
     init {
         getOfferData()
-        content.value.clear()
-
-        var selectedOffer: ArrayList<Offer>? = null
-        if(tabSelected.value == 0){
-            selectedOffer = allOffers?.priorityLottoOffer
-        }else if (tabSelected.value == 1){
-            selectedOffer = allOffers?.offerNextNHours
-        }else{
-            selectedOffer = allOffers?.completeOffer
-        }
-
-        if (selectedOffer != null) {
-            for(offer in selectedOffer){
-                content.value.add(Header(offer))
-            }
-        }
+        content.clear()
     }
 
     fun getOfferData() {
@@ -50,22 +39,22 @@ class OffersViewModel : ViewModel() {
             allOffers = fetchOfferDataAsync()
             //iz all offers u content spakovati
 
-           /* content.value.clear()
 
+            content.clear()
             var selectedOffer: ArrayList<Offer>? = null
-            if(tabSelected.value == 0){
+            if (tabSelected.value == 0) {
                 selectedOffer = allOffers?.priorityLottoOffer
-            }else if (tabSelected.value == 1){
+            } else if (tabSelected.value == 1) {
                 selectedOffer = allOffers?.offerNextNHours
-            }else{
+            } else {
                 selectedOffer = allOffers?.completeOffer
             }
 
             if (selectedOffer != null) {
-                for(offer in selectedOffer){
-                    content.value.add(Header(offer))
+                for (offer in selectedOffer) {
+                    content.add(Header(offer))
                 }
-            }*/
+            }
         }
     }
 
