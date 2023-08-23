@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,7 +40,7 @@ import java.util.Date
 
 
 @Composable
-fun HeaderView(countryOffer: Offer, onClickItem: () -> Unit) {
+fun HeaderView(countryOffer: Offer, onClickOffer: () -> Unit) {
     Box(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.primaryContainer)
@@ -52,7 +53,7 @@ fun HeaderView(countryOffer: Offer, onClickItem: () -> Unit) {
                     modifier = Modifier
                         .fillMaxHeight()
                         .padding(start = 8.dp, end = 8.dp)
-                        .clickable(onClick = onClickItem),
+                        .clickable(onClick = onClickOffer),
                     fontSize = 22.sp
                 )
             }
@@ -62,10 +63,14 @@ fun HeaderView(countryOffer: Offer, onClickItem: () -> Unit) {
 }
 
 @Composable
-fun ChildView(item: Base, viewModel: OffersViewModel) {
+fun ChildView(item: Base, viewModel: OffersViewModel, onChildClick:()->Unit) {
+
+    val remainingTime by viewModel.getRemainingTimeMillis((item as Child).lottoOffer)
+
+
     Row(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth().clickable(onClick = onChildClick),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
 
@@ -75,7 +80,8 @@ fun ChildView(item: Base, viewModel: OffersViewModel) {
             } ?: "N/A", Modifier.padding(10.dp))
 
         Text(
-            text = viewModel.getTimeLeft((item as Child).lottoOffer),
+            //text = viewModel.getTimeLeft((item as Child).lottoOffer),
+            text = viewModel.formatRemainingTime(remainingTime),
             Modifier.padding(10.dp)
         )
     }
@@ -102,6 +108,40 @@ fun ChildViewLabels() {
             )
     }
 
+}
+
+@Composable
+fun ThreeDotsView(item: Base, index: Int, viewModel: OffersViewModel) {
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "...", modifier = Modifier
+                .fillMaxHeight()
+                .padding(start = 8.dp, end = 8.dp)
+                .clickable(onClick = {
+                    var father = (item as Child).father
+
+                    for (i in 0..2) {
+                        if (father.threeByThree.size >= father.children.size)
+                            break
+
+                        var newElement =
+                            father.children.get(father.threeByThree.size)
+
+                        viewModel.content.add(
+                            index + 1,
+                            newElement
+                        )
+                        father.threeByThree.add(newElement)
+
+                    }
+                }),
+            fontSize = 30.sp
+        )
+    }
 }
 
 @Composable
