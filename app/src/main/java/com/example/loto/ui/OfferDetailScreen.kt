@@ -1,5 +1,7 @@
 package com.example.loto.ui
 
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,20 +17,36 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +61,9 @@ import com.example.loto.dto.MyNumber
 import com.example.loto.dto.responseOffers.LottoOffer
 import java.text.SimpleDateFormat
 
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OfferDetailScreen(viewModel: OffersViewModel) {
 
@@ -66,21 +87,57 @@ fun OfferDetailScreen(viewModel: OffersViewModel) {
         val itemWidth = screenWidth / columns
         itemWidth
     }
-    Column {
-        TimeAndKoloView(selectedOffer = viewModel.selectedLottoOffer)
 
-        LazyVerticalGrid(columns = GridCells.Fixed(10)) {
-
-            itemsIndexed(viewModel.numbersList) { index, item ->
-                StyledGridItem(item = item, viewModel = viewModel, onClickNumber = {
-                    item.clicked = !item.clicked
-                    if (item.clicked)
-                        clickedNumbers.add(item)
-                    else
-                        clickedNumbers.remove(item)
-                }, itemSize)
+    Scaffold(floatingActionButton = {
+        FloatingActionButton(
+            onClick = { /*TODO*/ },
+            shape = RoundedCornerShape(25.dp),
+            backgroundColor = MaterialTheme.colorScheme.background,
+            modifier = Modifier.width(150.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(10.dp).fillMaxWidth()
+            ) {
+                Text(text = "Moj Broj", color = Color.Black)
+                Box(
+                    modifier = Modifier
+                        .size(itemSize)
+                        .background(Color(0xFF872E9E), CircleShape)
+                        .border(
+                            2.dp,
+                            Color(0xFF872E9E),
+                            CircleShape
+                        )
+                        .aspectRatio(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = clickedNumbers.size.toString(), color = Color.White)
+                }
             }
+        }
+    }, floatingActionButtonPosition = FabPosition.Center) {
+        Column {
+            TimeAndKoloView(selectedOffer = viewModel.selectedLottoOffer)
+            RandomSelectionView(viewModel = viewModel, onClickButtonRandom =
+            { viewModel.getRandomNumbers() }
 
+            )
+            LazyVerticalGrid(columns = GridCells.Fixed(10)) {
+
+                itemsIndexed(viewModel.numbersList) { index, item ->
+                    StyledGridItem(item = item, viewModel = viewModel, onClickNumber = {
+                        item.clicked = !item.clicked
+                        if (item.clicked) {
+                            if (clickedNumbers.size < 8) clickedNumbers.add(item) else
+                                item.clicked = false
+                        } else
+                            clickedNumbers.remove(item)
+                    }, itemSize)
+                }
+
+            }
         }
     }
 
@@ -139,17 +196,90 @@ fun StyledGridItem(
         }
     }
 }
+
 @Composable
-fun RandomSelectionView(){}
+fun RandomSelectionView(viewModel: OffersViewModel, onClickButtonRandom: () -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(10.dp).height(70.dp)
+    ) {
+        Button(onClick = onClickButtonRandom) {
+            Text(text = "Slucajan Odabir")
+        }
+
+        DropDownMenuView(viewModel = viewModel)
+    }
+
+
+}
+
+@Composable
+fun DropDownMenuView(viewModel: OffersViewModel) {
+    val items = listOf(1, 2, 3, 4, 5, 6, 7, 8)
+    var expanded by remember { mutableStateOf(false) }
+    var selectedIndex = remember { viewModel.randomNumbersCounter }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentSize(Alignment.TopEnd)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Brojeva:")
+            Text(text = items[selectedIndex.value].toString())
+            IconButton(onClick = { expanded = !expanded }) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = "More"
+                )
+            }
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .height(200.dp)
+                .width(45.dp)
+        ) {
+            items.forEachIndexed { index, num ->
+                DropdownMenuItem(
+                    text = { Text(text = num.toString()) },
+                    onClick = {
+                        selectedIndex.value = index
+                        expanded = false
+                    })
+            }
+        }
+    }
+}
 
 @Composable
 fun TimeAndKoloView(selectedOffer: LottoOffer) {
-    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().background(
-        Color(0xFF872E9E)
-    )) {
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                Color(0xFF872E9E)
+            ).height(70.dp).padding(10.dp)
+    ) {
         Row {
-            Text(text = "Vreme izvlacenja:",fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
-            Text(text = SimpleDateFormat("HH:mm").format(selectedOffer.time), modifier = Modifier.padding(4.dp), color = Color.White)
+            Text(
+                text = "Vreme izvlacenja:",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(4.dp),
+                color = Color.White,
+
+            )
+            Text(
+                text = SimpleDateFormat("HH:mm").format(selectedOffer.time),
+                modifier = Modifier.padding(4.dp),
+                color = Color.White
+            )
         }
         Divider(
             modifier = Modifier
@@ -157,8 +287,17 @@ fun TimeAndKoloView(selectedOffer: LottoOffer) {
                 .width(1.dp)
         )
         Row {
-            Text(text = "Kolo:",fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
-            Text(text = selectedOffer.eventId.toString(), modifier = Modifier.padding(4.dp), color = Color.White)
+            Text(
+                text = "Kolo:",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(4.dp),
+                color = Color.White
+            )
+            Text(
+                text = selectedOffer.eventId.toString(),
+                modifier = Modifier.padding(4.dp),
+                color = Color.White
+            )
         }
     }
 

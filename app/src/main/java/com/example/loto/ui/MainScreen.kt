@@ -101,7 +101,15 @@ fun MainScreen(
                     }
                     ChildView(item = item, viewModel = viewModel, onChildClick = {
                         viewModel.selectedLottoOffer = (item as Child).lottoOffer
-                        Log.i("INFOOOOO","ID:"+(item as Child).lottoOffer.gameId+"  EventID: "+(item as Child).lottoOffer.eventId)
+                        (item as Child).lottoOffer.gameId?.let {
+                            (item as Child).lottoOffer.eventId?.let { it1 ->
+                                viewModel.getDetailedOffer(
+                                    it,
+                                    it1
+                                )
+                            }
+                        }
+
                         navHostController.navigate(Screens.OfferDetailScreen.route)
 
                     })

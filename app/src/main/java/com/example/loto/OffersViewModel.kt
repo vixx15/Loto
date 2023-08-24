@@ -16,6 +16,7 @@ import com.example.loto.api.NetworkClient
 import com.example.loto.dto.MyNumber
 import com.example.loto.dto.responseOffers.AllOffers
 import com.example.loto.dto.responseOffers.LottoOffer
+import com.example.loto.dto.responseOffers.LottoOfferDetailed
 import com.example.loto.dto.responseOffers.Offer
 import com.example.loto.expandedList.Base
 import com.example.loto.expandedList.Child
@@ -41,11 +42,16 @@ class OffersViewModel : ViewModel() {
     private val myScope = CoroutineScope(Dispatchers.IO)
 
     var selectedLottoOffer: LottoOffer = LottoOffer(name = "Ponudaaa")
+    private var _selectedDetailedOffer = mutableStateOf(LottoOfferDetailed())
+    var selectedOfferDetailed: MutableState<LottoOfferDetailed> = _selectedDetailedOffer
 
     var numbersList = ArrayList<MyNumber>()
 
     private val _clickedNumbers = mutableStateListOf<MyNumber>()
-    val clickedNumbers: SnapshotStateList<MyNumber> =  _clickedNumbers
+    val clickedNumbers: SnapshotStateList<MyNumber> = _clickedNumbers
+
+    private var _randomNumbersCounter = mutableStateOf(1)
+    var randomNumbersCounter: MutableState<Int> = _randomNumbersCounter
 
     init {
         getOfferData()
@@ -56,6 +62,26 @@ class OffersViewModel : ViewModel() {
         numbersList.clear()
         for (i in 1..numbers) {
             numbersList.add(MyNumber(i, false))
+        }
+    }
+
+    fun getRandomNumbers() {
+        clickedNumbers.clear()
+        while (clickedNumbers.size <= randomNumbersCounter.value) {
+            val num = numbersList.random()
+            if (!clickedNumbers.contains(num)){
+                num.clicked=true
+                clickedNumbers.add(num)}
+        }
+    }
+
+    fun getDetailedOffer(gameId: Int, eventId: Int) {
+        myScope.launch {
+            val response = fetchLottoOfferDetails(gameId, eventId)
+            if (response != null)
+                selectedOfferDetailed.value =
+                    response
+
         }
     }
 
@@ -124,22 +150,6 @@ class OffersViewModel : ViewModel() {
             }
         }
     }
-    /*fun getTimeLeft(lottoOffer: LottoOffer): String {
-        val now = Calendar.getInstance().timeInMillis
-        val draftTime = lottoOffer.time ?: 0
-        val allowedTillDraft = lottoOffer.allowBetTimeBefore?.times(1000) ?: 0
-
-        if (draftTime == 0L || allowedTillDraft == 0)
-            return "Not found"
-
-        val result = draftTime - now - allowedTillDraft
-
-        val mm = TimeUnit.MILLISECONDS.toMinutes(result)
-        val ss = TimeUnit.MILLISECONDS.toSeconds(result) % 60
-
-        val formatedString = String.format("%02d:%02d", mm, ss)
-        return formatedString
-    }*/
 
     fun formatRemainingTime(remainingTime: Long): String {
 
@@ -155,6 +165,18 @@ class OffersViewModel : ViewModel() {
             String.format("%02d:%02d:%02d", HH, mm, ss)
         return formattedString
 
+    }
+
+    suspend fun fetchLottoOfferDetails(gameId: Int, eventId: Int): LottoOfferDetailed? {
+        try {
+            val response = NetworkClient.getDetailedLottoOffer(1, gameId, eventId).execute()
+            if (response.isSuccessful) return response.body() else
+                Log.e("ErRRRRR", "Unsuccessful response")
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
     }
 
     suspend fun fetchOfferDataAsync(): AllOffers? {
