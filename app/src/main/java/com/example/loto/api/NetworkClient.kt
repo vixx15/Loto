@@ -3,6 +3,7 @@ package com.example.loto.api
 import com.example.loto.dto.requestOffers.OfferPostData
 import com.example.loto.dto.responseOffers.AllOffers
 import com.example.loto.dto.requestOffers.PriorityGames
+import com.example.loto.dto.responseOffers.LottoOfferDetailed
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -35,4 +36,17 @@ object NetworkClient {
         return my_api.postPonuda(request)
     }
 
+
+    suspend fun getDetailedLottoOffer(
+        languageId: Int,
+        gameId: Int,
+        eventId: Int
+    ): Call<LottoOfferDetailed> {
+
+        return my_api.getDetailedLottoOffer(
+            languageId.toString(),
+            gameId.toString(),
+            eventId.toString()
+        )
+    }
 }

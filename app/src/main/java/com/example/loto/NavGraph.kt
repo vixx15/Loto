@@ -1,11 +1,11 @@
 package com.example.loto
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavController
-import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.loto.ui.MainScreen
+import com.example.loto.ui.OfferDetailScreen
 
 
 @Composable

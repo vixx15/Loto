@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import com.example.loto.api.NetworkClient
 import com.example.loto.dto.MyNumber
@@ -43,6 +44,9 @@ class OffersViewModel : ViewModel() {
 
     var numbersList = ArrayList<MyNumber>()
 
+    private val _clickedNumbers = mutableStateListOf<MyNumber>()
+    val clickedNumbers: SnapshotStateList<MyNumber> =  _clickedNumbers
+
     init {
         getOfferData()
         content.clear()
@@ -51,7 +55,7 @@ class OffersViewModel : ViewModel() {
     fun getListOfNumbers(numbers: Int) {
         numbersList.clear()
         for (i in 1..numbers) {
-            numbersList.add(MyNumber(i,false))
+            numbersList.add(MyNumber(i, false))
         }
     }
 
@@ -165,6 +169,23 @@ class OffersViewModel : ViewModel() {
             e.printStackTrace()
         }
         return null
+    }
+
+    fun getColor(number: Int): Color? {
+        val differentColors = mapOf(
+            0 to Color(0xFFB39DDB), // Lavender
+            1 to Color(0xFF90CAF9), // Light Blue
+            2 to Color(0xFF81C784), // Light Green
+            3 to Color(0xFFFFCC80), // Peach
+            4 to Color(0xFFFFAB91), // Light Salmon
+            5 to Color(0xFFFFD54F), // Pale Yellow
+            6 to Color(0xFFCE93D8), // Pale Violet
+            7 to Color(0xFF80CBC4), // Turquoise
+            8 to Color(0xFFEF9A9A), // Pale Pink
+            9 to Color(0xFFA5D6A7)
+
+        )
+        return differentColors[number / 10]
     }
 
     @Composable

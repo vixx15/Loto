@@ -1,5 +1,6 @@
-package com.example.loto
+package com.example.loto.ui
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.loto.OffersViewModel
+import com.example.loto.R
+import com.example.loto.Screens
 import com.example.loto.expandedList.Child
 import com.example.loto.expandedList.Header
 import java.util.Calendar
@@ -97,7 +101,9 @@ fun MainScreen(
                     }
                     ChildView(item = item, viewModel = viewModel, onChildClick = {
                         viewModel.selectedLottoOffer = (item as Child).lottoOffer
+                        Log.i("INFOOOOO","ID:"+(item as Child).lottoOffer.gameId+"  EventID: "+(item as Child).lottoOffer.eventId)
                         navHostController.navigate(Screens.OfferDetailScreen.route)
+
                     })
                     /*Row(
                         modifier = Modifier

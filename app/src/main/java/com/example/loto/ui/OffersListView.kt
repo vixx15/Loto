@@ -1,4 +1,4 @@
-package com.example.loto
+package com.example.loto.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.loto.OffersViewModel
 
 import com.example.loto.dto.responseOffers.LottoOffer
 import com.example.loto.dto.responseOffers.Offer
