@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import com.example.loto.api.NetworkClient
 import com.example.loto.dto.MyNumber
@@ -53,6 +54,9 @@ class OffersViewModel : ViewModel() {
     private var _randomNumbersCounter = mutableStateOf(1)
     var randomNumbersCounter: MutableState<Int> = _randomNumbersCounter
 
+    private var _moneyInput = mutableStateOf(String())
+    var moneyInput: MutableState<String> = _moneyInput
+
     init {
         getOfferData()
         content.clear()
@@ -69,9 +73,10 @@ class OffersViewModel : ViewModel() {
         clickedNumbers.clear()
         while (clickedNumbers.size <= randomNumbersCounter.value) {
             val num = numbersList.random()
-            if (!clickedNumbers.contains(num)){
-                num.clicked=true
-                clickedNumbers.add(num)}
+            if (!clickedNumbers.contains(num)) {
+                num.clicked = true
+                clickedNumbers.add(num)
+            }
         }
     }
 
@@ -239,6 +244,13 @@ class OffersViewModel : ViewModel() {
 
         }
         return remainingTime
+    }
+
+    fun getMaksimalanDobitak(): String {
+
+        val uneto = moneyInput.value.toFloat()
+
+        return (uneto * selectedOfferDetailed.value.oddValues[clickedNumbers.size - 1].value!!).toString()
     }
 }
 

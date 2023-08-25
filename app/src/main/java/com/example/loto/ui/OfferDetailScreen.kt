@@ -56,7 +56,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.example.loto.OffersViewModel
+import com.example.loto.Screens
 import com.example.loto.dto.MyNumber
 import com.example.loto.dto.responseOffers.LottoOffer
 import java.text.SimpleDateFormat
@@ -64,8 +67,9 @@ import java.text.SimpleDateFormat
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
-fun OfferDetailScreen(viewModel: OffersViewModel) {
+fun OfferDetailScreen(viewModel: OffersViewModel, navController: NavHostController) {
 
     val clickedNumbers = remember { viewModel.clickedNumbers }
 
@@ -90,7 +94,7 @@ fun OfferDetailScreen(viewModel: OffersViewModel) {
 
     Scaffold(floatingActionButton = {
         FloatingActionButton(
-            onClick = { /*TODO*/ },
+            onClick = { navController.navigate(Screens.TicketScreen.route) },
             shape = RoundedCornerShape(25.dp),
             backgroundColor = MaterialTheme.colorScheme.background,
             modifier = Modifier.width(150.dp)
@@ -98,7 +102,9 @@ fun OfferDetailScreen(viewModel: OffersViewModel) {
             Row(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(10.dp).fillMaxWidth()
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth()
             ) {
                 Text(text = "Moj Broj", color = Color.Black)
                 Box(
@@ -202,7 +208,9 @@ fun RandomSelectionView(viewModel: OffersViewModel, onClickButtonRandom: () -> U
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(10.dp).height(70.dp)
+        modifier = Modifier
+            .padding(10.dp)
+            .height(70.dp)
     ) {
         Button(onClick = onClickButtonRandom) {
             Text(text = "Slucajan Odabir")
@@ -261,11 +269,15 @@ fun DropDownMenuView(viewModel: OffersViewModel) {
 @Composable
 fun TimeAndKoloView(selectedOffer: LottoOffer) {
     Row(
-        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
             .fillMaxWidth()
             .background(
                 Color(0xFF872E9E)
-            ).height(70.dp).padding(10.dp)
+            )
+            .height(70.dp)
+            .padding(10.dp)
     ) {
         Row {
             Text(
@@ -274,7 +286,7 @@ fun TimeAndKoloView(selectedOffer: LottoOffer) {
                 modifier = Modifier.padding(4.dp),
                 color = Color.White,
 
-            )
+                )
             Text(
                 text = SimpleDateFormat("HH:mm").format(selectedOffer.time),
                 modifier = Modifier.padding(4.dp),
