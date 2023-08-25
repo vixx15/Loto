@@ -248,8 +248,9 @@ class OffersViewModel : ViewModel() {
 
     fun getMaksimalanDobitak(): String {
 
-        val uneto = moneyInput.value.toFloat()
-
+        var uneto = moneyInput.value.toFloatOrNull()
+        if (uneto == null)
+            uneto = 0.0f
         return (uneto * selectedOfferDetailed.value.oddValues[clickedNumbers.size - 1].value!!).toString()
     }
 }

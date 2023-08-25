@@ -12,17 +12,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.OutlinedTextField
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -46,16 +47,59 @@ fun TicketScreen(viewModel: OffersViewModel, navController: NavHostController) {
         viewModel.selectedOfferDetailed.value.name?.let { TicketTitleView(gameName = it) }
         TimeAndKoloView(selectedOffer = viewModel.selectedLottoOffer)
         SelectedNumbersView(viewModel = viewModel)
+        TicketPaymentInfoView(viewModel = viewModel)
+        Divider (modifier = Modifier
+            .width(500.dp)
+            .height(2.dp))
         InputMoneyAmountView(viewModel = viewModel)
     }
 }
 
+@Composable
+fun TicketPaymentInfoView(viewModel: OffersViewModel) {
+
+
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .padding(10.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Text(text = "Uplata", fontWeight = FontWeight.Bold,)
+            Text(text = viewModel.moneyInput.value)
+        }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Text(text = "Kvota", fontWeight = FontWeight.Bold)
+            Text(text = (viewModel.selectedOfferDetailed.value.oddValues[viewModel.clickedNumbers.size - 1].value).toString())
+        }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Text(text = "Isplata", fontWeight = FontWeight.Bold)
+            Text(text = viewModel.getMaksimalanDobitak())
+        }
+
+    }
+
+
+}
 
 @Composable
 fun InputMoneyAmountView(viewModel: OffersViewModel) {
-    var text = remember { viewModel.moneyInput }
+    val text = remember { viewModel.moneyInput }
 
-    Row {
+    Row(
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         OutlinedTextField(
             value = text.value,
             onValueChange = { newText -> text.value = newText },
@@ -65,13 +109,25 @@ fun InputMoneyAmountView(viewModel: OffersViewModel) {
                 )
             },
             placeholder = { Text(text = "0.00") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.width(150.dp)
         )
 
-        Button(onClick = { /*TODO*/ }) {
-            Column {
-                Text(text = "Uplati")
-              //  Text(text = "Maksimalan dobitak: " + viewModel.getMaksimalanDobitak())
+        Button(
+            onClick = { /*TODO*/ },
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = Color(0xFF4CAF50),
+                contentColor = Color.White
+            )
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Uplati",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = Color.White
+                )
+                Text(text = "Dobitak: " + viewModel.getMaksimalanDobitak(), color = Color.White)
             }
         }
     }

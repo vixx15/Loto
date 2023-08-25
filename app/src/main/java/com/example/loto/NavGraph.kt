@@ -25,13 +25,13 @@ fun NavGraph(
         composable(
             route = Screens.OfferDetailScreen.route
         ) {
-            OfferDetailScreen(viewModel = viewModel,navController=navController)
+            OfferDetailScreen(viewModel = viewModel, navController = navController)
         }
 
         composable(
             route = Screens.TicketScreen.route
         ) {
-         TicketScreen(viewModel = viewModel, navController = navController)
+            TicketScreen(viewModel = viewModel, navController = navController)
         }
 
     }

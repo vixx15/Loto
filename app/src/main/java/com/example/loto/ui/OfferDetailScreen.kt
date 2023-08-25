@@ -81,7 +81,9 @@ fun OfferDetailScreen(viewModel: OffersViewModel, navController: NavHostControll
             viewModel.selectedLottoOffer.name?.substring(length - 3, length - 1)?.toInt() ?: 0
     }
 
-    viewModel.getListOfNumbers(gameNumbers)
+    viewModel.getListOfNumbers(
+        viewModel.selectedOfferDetailed.value.ballsTotalNumber ?: gameNumbers
+    )
 
     val layoutDirection = LocalLayoutDirection.current
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
@@ -124,6 +126,8 @@ fun OfferDetailScreen(viewModel: OffersViewModel, navController: NavHostControll
             }
         }
     }, floatingActionButtonPosition = FabPosition.Center) {
+
+
         Column {
             TimeAndKoloView(selectedOffer = viewModel.selectedLottoOffer)
             RandomSelectionView(viewModel = viewModel, onClickButtonRandom =
@@ -136,7 +140,9 @@ fun OfferDetailScreen(viewModel: OffersViewModel, navController: NavHostControll
                     StyledGridItem(item = item, viewModel = viewModel, onClickNumber = {
                         item.clicked = !item.clicked
                         if (item.clicked) {
-                            if (clickedNumbers.size < 8) clickedNumbers.add(item) else
+                            if (clickedNumbers.size < viewModel.selectedOfferDetailed.value.ballsToBet ?: 8) clickedNumbers.add(
+                                item
+                            ) else
                                 item.clicked = false
                         } else
                             clickedNumbers.remove(item)
