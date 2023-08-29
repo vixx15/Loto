@@ -2,12 +2,14 @@ package com.example.loto.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,11 +23,15 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,37 +42,243 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.loto.OffersViewModel
+import com.example.loto.dto.MathUtils.calculateNumberOfCombinations
 import com.example.loto.dto.MyNumber
+import com.example.loto.dto.MySystemTicketSelector
 
 
 @Composable
 fun TicketScreen(viewModel: OffersViewModel, navController: NavHostController) {
+
+    val selected = remember {
+        viewModel.ticketTypeSelected
+    }
+
     Column {
 
 
         viewModel.selectedOfferDetailed.value.name?.let { TicketTitleView(gameName = it) }
         TimeAndKoloView(selectedOffer = viewModel.selectedLottoOffer)
+        ChooseTicketTypeView(viewModel = viewModel)
         SelectedNumbersView(viewModel = viewModel)
-        TicketPaymentInfoView(viewModel = viewModel)
-        Divider (modifier = Modifier
-            .width(500.dp)
-            .height(2.dp))
+
+        if (selected.value == 0) {
+            TicketPaymentInfoView(viewModel = viewModel)
+        } else {
+            SystemTicketInputParams(viewModel = viewModel)
+            SystemTicketInfo(viewModel = viewModel)
+        }
+
+        Divider(
+            modifier = Modifier
+                .width(500.dp)
+                .height(2.dp)
+        )
         InputMoneyAmountView(viewModel = viewModel)
     }
+}
+
+@Composable
+fun SystemTicketInputParams(viewModel: OffersViewModel) {
+
+
+    LazyVerticalGrid(columns = GridCells.Fixed(4)) {
+        itemsIndexed(viewModel.selectedSystems) { index, item ->
+            StyledCheckBox(viewModel = viewModel, index = index)
+        }
+    }
+
+}
+
+@Composable
+fun SystemTicketInfo(viewModel: OffersViewModel) {
+
+
+
+    Column {
+
+        Row(
+            // horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Color(0xFFC694D3)
+                )
+                .height(60.dp)
+                .padding(10.dp)
+        ) {
+
+            Text(
+                text = "Brojeva: ",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(4.dp),
+                color = Color.White,
+
+                )
+            Text(
+                text = viewModel.clickedNumbers.size.toString(),
+                modifier = Modifier.padding(4.dp),
+                color = Color.White
+            )
+
+
+        }
+        Row(
+            // horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Color(0xFFC694D3)
+                )
+                .height(60.dp)
+                .padding(10.dp)
+        ) {
+
+            Text(
+                text = "Kombinacija: ",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(4.dp),
+                color = Color.White,
+
+                )
+            Text(
+                text = viewModel.calculateNumberOfCombinations(viewModel.convertListMyNumbersToListInt(),
+                    viewModel.selectedSystemsNumbers, 0).toString(),
+                //viewModel.calcCombinationNumber(
+                    //viewModel.numberOfCheckedSystems.value,
+                   // viewModel.clickedNumbers.size).toString(),
+
+                modifier = Modifier.padding(4.dp),
+                color = Color.White
+            )
+        }
+
+        Row(
+            // horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Color(0xFFC694D3)
+                )
+                .height(60.dp)
+                .padding(10.dp)
+        ) {
+
+            Text(
+                text = "Maksimalan dobitak: ",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(4.dp),
+                color = Color.White,
+
+                )
+            Text(
+                text = viewModel.getMaxPotentialPayment(
+                    viewModel.selectedOfferDetailed.value,
+                    0,
+                    viewModel.convertListMyNumbersToListInt(),
+                    viewModel.selectedSystemsNumbers,
+                    viewModel.moneyInput.value.toDoubleOrNull() ?: 0.0,
+                    null
+                ).toString(),
+                modifier = Modifier.padding(4.dp),
+                color = Color.White
+            )
+        }
+    }
+
+}
+
+@Composable
+fun StyledCheckBox(viewModel: OffersViewModel, index: Int) {
+    var checked by remember {
+        mutableStateOf(viewModel.selectedSystems[index].checked)
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(checked = checked, onCheckedChange = { chkd ->
+            checked = chkd
+            viewModel.selectedSystems[index].checked = chkd
+            if (chkd == true)
+                viewModel.selectedSystemsNumbers.add(index + 1)
+            else {
+                viewModel.selectedSystemsNumbers.remove(index + 1)
+            }
+            viewModel.getNumberOfCheckedBoxes()
+        })
+
+        Text(text = viewModel.selectedSystems[index].name)
+    }
+}
+
+@Composable
+fun ChooseTicketTypeView(viewModel: OffersViewModel) {
+    val selected = remember {
+        viewModel.ticketTypeSelected
+    }
+
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(70.dp)
+            .padding(10.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .clickable { selected.value = 0 }
+                .background(if (selected.value == 0) Color(0xFFC694D3) else Color.Transparent),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Standardni",
+                fontWeight = if (selected.value == 0) FontWeight.Bold else FontWeight.Normal,
+                color = if (selected.value == 0) Color.White else MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(8.dp)
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .clickable {
+                    selected.value = 1
+                    viewModel.prepareSystemTicketOptions()
+                }
+                .background(if (selected.value == 1) Color(0xFFC694D3) else Color.Transparent),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Sistemski",
+                fontWeight = if (selected.value == 1) FontWeight.Bold else FontWeight.Normal,
+                color = if (selected.value == 1) Color.White else MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(8.dp)
+            )
+        }
+
+
+    }
+
 }
 
 @Composable
 fun TicketPaymentInfoView(viewModel: OffersViewModel) {
 
 
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .padding(10.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp), horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
-            Text(text = "Uplata", fontWeight = FontWeight.Bold,)
+            Text(text = "Uplata", fontWeight = FontWeight.Bold)
             Text(text = viewModel.moneyInput.value)
         }
         Column(

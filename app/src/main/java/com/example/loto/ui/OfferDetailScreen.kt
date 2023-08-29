@@ -1,7 +1,6 @@
 package com.example.loto.ui
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,7 +26,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
@@ -39,6 +36,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,23 +45,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.loto.OffersViewModel
 import com.example.loto.Screens
 import com.example.loto.dto.MyNumber
 import com.example.loto.dto.responseOffers.LottoOffer
 import java.text.SimpleDateFormat
+import java.util.Timer
+import java.util.TimerTask
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -71,6 +68,29 @@ import java.text.SimpleDateFormat
 @Composable
 fun OfferDetailScreen(viewModel: OffersViewModel, navController: NavHostController) {
 
+   /* val remainingTime by viewModel.remainingTime
+
+    LaunchedEffect(remainingTime) {
+        if (remainingTime <= 0) {
+            viewModel.handleExpiredOffer()
+        }
+    }
+
+    DisposableEffect(Unit) {
+        val timer = Timer()
+        val timerTask = object : TimerTask() {
+            override fun run() {
+                viewModel.updateRemainingTime()
+            }
+        }
+        timer.scheduleAtFixedRate(timerTask, 0, 1000)
+
+        onDispose {
+            timer.cancel()
+        }
+    }
+
+*/
     val clickedNumbers = remember { viewModel.clickedNumbers }
 
     var length = viewModel.selectedLottoOffer.name?.length
@@ -96,7 +116,9 @@ fun OfferDetailScreen(viewModel: OffersViewModel, navController: NavHostControll
 
     Scaffold(floatingActionButton = {
         FloatingActionButton(
-            onClick = { navController.navigate(Screens.TicketScreen.route) },
+            onClick = {
+                navController.navigate(Screens.TicketScreen.route)
+            },
             shape = RoundedCornerShape(25.dp),
             backgroundColor = MaterialTheme.colorScheme.background,
             modifier = Modifier.width(150.dp)
@@ -155,6 +177,8 @@ fun OfferDetailScreen(viewModel: OffersViewModel, navController: NavHostControll
 
 
 }
+
+
 
 @Composable
 fun StyledGridItem(

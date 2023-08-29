@@ -1,7 +1,6 @@
 package com.example.loto
 
 import android.util.Log
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -11,13 +10,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import com.example.loto.api.NetworkClient
+import com.example.loto.dto.CalculationResult
 import com.example.loto.dto.MyNumber
+import com.example.loto.dto.MySystemTicketSelector
 import com.example.loto.dto.responseOffers.AllOffers
 import com.example.loto.dto.responseOffers.LottoOffer
 import com.example.loto.dto.responseOffers.LottoOfferDetailed
+import com.example.loto.dto.responseOffers.OddValues
 import com.example.loto.dto.responseOffers.Offer
 import com.example.loto.expandedList.Base
 import com.example.loto.expandedList.Child
@@ -29,6 +30,7 @@ import java.util.Calendar
 import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.TimeUnit
+
 
 class OffersViewModel : ViewModel() {
 
@@ -56,6 +58,21 @@ class OffersViewModel : ViewModel() {
 
     private var _moneyInput = mutableStateOf(String())
     var moneyInput: MutableState<String> = _moneyInput
+
+    private var _ticketTypeSelected = mutableStateOf(0)
+    val ticketTypeSelected: MutableState<Int> = _ticketTypeSelected
+
+    private val _selectedSystems = mutableStateListOf<MySystemTicketSelector>()
+    val selectedSystems: SnapshotStateList<MySystemTicketSelector> = _selectedSystems
+
+    private var _numberOfCheckedSystems = mutableStateOf(0)
+    var numberOfCheckedSystems: State<Int> = _numberOfCheckedSystems
+
+    private var _selectedSystemsNumbers = mutableStateListOf<Int>()
+    val selectedSystemsNumbers: SnapshotStateList<Int> = _selectedSystemsNumbers
+
+    private val _remainingTime = mutableStateOf(0L)
+    var remainingTime: State<Long> = _remainingTime
 
     init {
         getOfferData()
@@ -246,6 +263,28 @@ class OffersViewModel : ViewModel() {
         return remainingTime
     }
 
+    fun updateRemainingTime() {
+        val now = Calendar.getInstance().timeInMillis
+        val draftTime = selectedLottoOffer.time ?: 0
+        val allowedTillDraft = selectedLottoOffer.allowBetTimeBefore?.times(1000) ?: 0
+        if (draftTime == 0L || allowedTillDraft == 0)
+            return
+
+        _remainingTime.value = draftTime - now - allowedTillDraft
+    }
+
+    fun handleExpiredOffer() {
+
+        var nextDraft = getNextDraft(selectedLottoOffer)
+
+        if (nextDraft != null)
+            selectedLottoOffer = nextDraft
+        else {
+            selectedLottoOffer=LottoOffer()
+        }
+
+    }
+
     fun getMaksimalanDobitak(): String {
 
         var uneto = moneyInput.value.toFloatOrNull()
@@ -253,6 +292,129 @@ class OffersViewModel : ViewModel() {
             uneto = 0.0f
         return (uneto * selectedOfferDetailed.value.oddValues[clickedNumbers.size - 1].value!!).toString()
     }
+
+    fun prepareSystemTicketOptions() {
+        selectedSystems.clear()
+        for (number in 1..clickedNumbers.size) {
+            selectedSystems.add(
+                MySystemTicketSelector(
+                    number.toString() + "/" + clickedNumbers.size,
+                    false
+                )
+            )
+        }
+    }
+
+    fun calcCombinationNumber(k: Int, n: Int): Int {
+        var factorial: Long = 1
+        val biggerFactor = if (n - k > k) n - k else k
+        val smallerFactor = n - biggerFactor
+        for (i in n downTo biggerFactor + 1) {
+            factorial *= i.toLong()
+        }
+        for (i in smallerFactor downTo 2) {
+            factorial /= i.toLong()
+        }
+        return factorial.toInt()
+    }
+
+    fun getNumberOfCombinations(numberOfBalls: Int, ballsToDraw: Long, subsystem: Int): Int {
+        var n1 = numberOfBalls
+        try {
+            n1 = Math.min(numberOfBalls, ballsToDraw.toInt())
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+            //CrashlyticsWrapper.logException(e)
+        }
+        return calcCombinationNumber(subsystem, n1)
+    }
+
+    public fun getMaxPotentialPayment(
+        ticketGame: LottoOfferDetailed,
+        numberOfFixes: Int,
+        numbers: List<Int?>,
+        subsystems: List<Int>,
+        payinNeto: Double, result: CalculationResult?
+    ): Double {
+        val comboPayin: Double = payinNeto /
+                calculateNumberOfCombinations(numbers, subsystems, numberOfFixes)
+        val oddValues: List<OddValues> = ticketGame.oddValues
+        var total = 0.0
+        for (subsystem in subsystems) {
+            val winningCombinations: Int = getNumberOfCombinations(
+                numbers.size - numberOfFixes,
+                ticketGame.ballsToDraw?.toLong() ?: 0,
+                subsystem
+            )
+            val oddValue: Double =
+                findLotoOddValueForBalls((subsystem + numberOfFixes).toLong(), oddValues)
+            total += oddValue * comboPayin * winningCombinations
+        }
+        if (result != null) {
+            result.win = total
+        }
+
+        return total //bruto
+    }
+
+    fun findLotoOddValueForBalls(winBallsCount: Long, oddValues: List<OddValues?>): Double {
+        for (ov in oddValues) {
+            if (ov?.ballNumber?.toLong() === winBallsCount) if (ov != null) {
+                return ov.value ?: 0.0
+            }
+        }
+        return 0.0
+    }
+
+    fun convertListMyNumbersToListInt(): ArrayList<Int> {
+        var brojevi = ArrayList<Int>()
+        for (number in clickedNumbers) {
+            brojevi.add(number.number)
+        }
+        return brojevi
+    }
+
+
+    fun calculateNumberOfCombinations(
+        numbers: List<Int?>,
+        subsystems: List<Int?>,
+        inFix: Int
+    ): Int {
+        if (numbers.isEmpty()) {
+            return 0
+        }
+        var total = 0
+        val size = numbers.size - inFix
+        for (subsystem in subsystems) {
+            total += calcCombinationNumber(subsystem!!, size)
+        }
+        return total
+    }
+
+    fun getNumberOfCheckedBoxes() {
+        var n = 0
+        for (i in selectedSystems) {
+            if (i.checked)
+                n++
+
+        }
+        _numberOfCheckedSystems.value = n
+        numberOfCheckedSystems = _numberOfCheckedSystems
+    }
+
+    fun getNextDraft(selectedLottoOffer: LottoOffer): LottoOffer? {
+        var found = false
+        for (item in content) {
+            if (found && item is Child)
+                return item.lottoOffer
+            if (item.type == 1 && (item as Child).lottoOffer == selectedLottoOffer) {
+                found = true
+            }
+        }
+        return null
+    }
+
+
 }
 
 

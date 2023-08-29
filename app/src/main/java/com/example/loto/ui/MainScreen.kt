@@ -63,7 +63,7 @@ fun MainScreen(
                                 item.threeByThree.clear()
                                 for (i in 0..2) {
                                     if (i <= item.children.size - 1) {
-                                        viewModel.content.add(index + 1, item.children[i])
+                                        viewModel.content.add(index + 1 + i, item.children[i])
                                         item.threeByThree.add(item.children[i])
                                     }
                                 }
@@ -143,51 +143,7 @@ fun BottomBar(viewModel: OffersViewModel) {
         viewModel.updateContentBasedOnTab()
     }
 
-    /*BottomAppBar(
-        Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-       // contentPadding = AppBarDefaults.ContentPadding,
-        contentColor = MaterialTheme.colorScheme.primary
-    ) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                ,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Brzze igre",
-                Modifier
-                    .clickable { selected = 0 }
-                    .background(if (selected == 0) Color(0xFFC694D3) else Color.Transparent)
-                    .fillMaxHeight()
-                    ,
-                fontWeight = if (selected == 0) FontWeight.Bold else FontWeight.Normal,
-                color = if (selected == 0) Color.White else MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "Sledeca 24 sata",
-                Modifier
-                    .clickable { selected = 1 }.padding(2.dp)
-                    .background(if (selected == 1) Color(0xFFC694D3) else Color.Transparent)
-                    .fillMaxHeight()
-                    ,
-                fontWeight = if (selected == 1) FontWeight.Bold else FontWeight.Normal,
-                color = if (selected == 1) Color.White else MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "Svi dani",
-                Modifier
-                    .clickable { selected = 2 }.padding(2.dp)
-                    .background(if (selected == 2) Color(0xFFC694D3) else Color.Transparent)
-                    .fillMaxHeight()
-                    ,
-                fontWeight = if (selected == 2) FontWeight.Bold else FontWeight.Normal,
-                color = if (selected == 2) Color.White else MaterialTheme.colorScheme.primary
-            )
-        }
-    }*/  BottomAppBar(
+    BottomAppBar(
         Modifier.fillMaxWidth(),
         containerColor = MaterialTheme.colorScheme.secondaryContainer,
         contentColor = MaterialTheme.colorScheme.primary
