@@ -87,7 +87,7 @@ fun MainScreen(
                         ChildViewLabels()
                     }
                     ChildView(item = item, viewModel = viewModel, onChildClick = {
-                        viewModel.selectedLottoOffer = (item as Child).lottoOffer
+                        viewModel.selectedLottoOffer.value = (item as Child).lottoOffer
                         item.lottoOffer.gameId?.let {
                             item.lottoOffer.eventId?.let { it1 ->
                                 viewModel.getDetailedOffer(

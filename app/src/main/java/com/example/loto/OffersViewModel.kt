@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.loto.api.NetworkClient
 import com.example.loto.dto.CalculationResult
 import com.example.loto.dto.MyNumber
@@ -25,20 +26,21 @@ import com.example.loto.expandedList.Child
 import com.example.loto.expandedList.Header
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okhttp3.internal.format
 import java.text.DecimalFormat
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
-import java.util.Locale
 import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.TimeUnit
 
 
 class OffersViewModel : ViewModel() {
+
+    private var _numberOfFixes = mutableStateOf(0)
+    val numberOfFixes: MutableState<Int> = _numberOfFixes
 
     private var allOffers: AllOffers? = null
 
@@ -50,7 +52,10 @@ class OffersViewModel : ViewModel() {
 
     private val myScope = CoroutineScope(Dispatchers.IO)
 
-    var selectedLottoOffer: LottoOffer = LottoOffer(name = "Ponudaaa")
+    var _selectedLottoOffer = mutableStateOf(LottoOffer())
+    var selectedLottoOffer: MutableState<LottoOffer> = _selectedLottoOffer
+
+
     private var _selectedDetailedOffer = mutableStateOf(LottoOfferDetailed())
     var selectedOfferDetailed: MutableState<LottoOfferDetailed> = _selectedDetailedOffer
 
@@ -77,7 +82,7 @@ class OffersViewModel : ViewModel() {
     private var _selectedSystemsNumbers = mutableStateListOf<Int>()
     val selectedSystemsNumbers: SnapshotStateList<Int> = _selectedSystemsNumbers
 
-    private val _remainingTime = mutableStateOf(0L)
+    private var _remainingTime = mutableStateOf(0L)
     var remainingTime: State<Long> = _remainingTime
 
     init {
@@ -117,8 +122,6 @@ class OffersViewModel : ViewModel() {
 
         myScope.launch {
             allOffers = fetchOfferDataAsync()
-            //iz all offers u content spakovati
-
 
             content.clear()
             var selectedOffer: ArrayList<Offer>? = null
@@ -142,7 +145,6 @@ class OffersViewModel : ViewModel() {
                     }
                     header.children = children
                     content.add(header)
-                    //content.add(Header(offer, children, threeKids))
 
                 }
             }
@@ -174,7 +176,7 @@ class OffersViewModel : ViewModel() {
                 }
                 header.children = children
                 content.add(header)
-                //content.add(Header(offer, children, threeKids))
+
             }
         }
     }
@@ -199,7 +201,7 @@ class OffersViewModel : ViewModel() {
         try {
             val response = NetworkClient.getDetailedLottoOffer(1, gameId, eventId).execute()
             if (response.isSuccessful) return response.body() else
-                Log.e("ErRRRRR", "Unsuccessful response")
+                Log.e("ERRRRR", "Unsuccessful response")
 
         } catch (e: Exception) {
             e.printStackTrace()
@@ -214,7 +216,7 @@ class OffersViewModel : ViewModel() {
 
             if (response.isSuccessful) return response.body()
             else
-                Log.e("ERR", "Unsuccessfull response")
+                Log.e("ERR", "Unsuccessful response")
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -223,7 +225,6 @@ class OffersViewModel : ViewModel() {
 
     fun getColor(number: Int): Color? {
         val differentColors = when {
-
 
             number <= 10 -> Color(0xFFB39DDB) // Lavender
             number <= 20 -> Color(0xFF90CAF9)// Light Blue
@@ -238,6 +239,61 @@ class OffersViewModel : ViewModel() {
 
         }
         return differentColors
+    }
+
+    fun getRemTime() {
+        myScope.launch {
+
+            timerCorutine()
+        }
+
+    }
+
+    private suspend fun timerCorutine() {
+        var draftTime = selectedLottoOffer.value.time ?: 0
+        var allowedTillDraft = selectedLottoOffer.value.allowBetTimeBefore?.times(1000) ?: 0
+
+        if (draftTime == 0L || allowedTillDraft == 0)
+            return
+
+        while (true) {
+            Log.i("INFO", "USAO")
+
+            val now = Calendar.getInstance().timeInMillis
+            Log.i("INFO", "SAD " +now)
+
+            _remainingTime.value = draftTime - now - allowedTillDraft
+            Log.i("INFO", "Preostalo vremena VAN IFA " + remainingTime.value.toString())
+
+            if (_remainingTime.value <= 0) {
+                Log.i("INFO", "------------------------------------------" )
+                selectedLottoOffer.value = getNextDraft(selectedLottoOffer.value) ?: LottoOffer()
+
+                Log.i("INFO", "Nadjena sledeca id " + selectedLottoOffer.value.eventId)
+
+                draftTime = selectedLottoOffer.value.time ?: 0
+                allowedTillDraft = selectedLottoOffer.value.allowBetTimeBefore?.times(1000) ?: 0
+
+                Log.i("INFO", "DraftTime:  " + draftTime)
+                Log.i("INFO", "AllowedTillDraft " + allowedTillDraft)
+
+                if (draftTime == 0L || allowedTillDraft == 0)
+                    return
+
+                selectedLottoOffer.value.gameId?.let {
+                    selectedLottoOffer.value.eventId?.let { it1 ->
+                        getDetailedOffer(
+                            it,
+                            it1
+                        )
+                    }
+                }
+                Log.i("INFO", "Preostalo vremena u ifu " + remainingTime.value.toString())
+
+                return
+            }
+            delay(1000)
+        }
     }
 
     @Composable
@@ -271,24 +327,15 @@ class OffersViewModel : ViewModel() {
         return remainingTime
     }
 
-    fun updateRemainingTime() {
-        val now = Calendar.getInstance().timeInMillis
-        val draftTime = selectedLottoOffer.time ?: 0
-        val allowedTillDraft = selectedLottoOffer.allowBetTimeBefore?.times(1000) ?: 0
-        if (draftTime == 0L || allowedTillDraft == 0)
-            return
-
-        _remainingTime.value = draftTime - now - allowedTillDraft
-    }
 
     fun handleExpiredOffer() {
 
-        var nextDraft = getNextDraft(selectedLottoOffer)
+        var nextDraft = getNextDraft(selectedLottoOffer.value)
 
         if (nextDraft != null)
-            selectedLottoOffer = nextDraft
+            selectedLottoOffer.value = nextDraft
         else {
-            selectedLottoOffer = LottoOffer()
+            selectedLottoOffer.value = LottoOffer()
         }
 
     }
@@ -305,17 +352,15 @@ class OffersViewModel : ViewModel() {
         if (result > 10000000)
             result = 10000000.0
 
-
-
         return String.format("%.02f", (result))
     }
 
     fun prepareSystemTicketOptions() {
         selectedSystems.clear()
-        for (number in 1..clickedNumbers.size) {
+        for (number in 1..clickedNumbers.size - numberOfFixes.value) {
             selectedSystems.add(
                 MySystemTicketSelector(
-                    number.toString() + "/" + clickedNumbers.size,
+                    number.toString() + "/" + (clickedNumbers.size - numberOfFixes.value),
                     false
                 )
             )
@@ -378,7 +423,7 @@ class OffersViewModel : ViewModel() {
 
         var result = getMaxPotentialPayment(
             selectedOfferDetailed.value,
-            0,
+            numberOfFixes.value,
             convertListMyNumbersToListInt(),
             selectedSystemsNumbers,
             moneyInput.value.toDoubleOrNull() ?: 0.0,
@@ -438,15 +483,52 @@ class OffersViewModel : ViewModel() {
     }
 
     fun getNextDraft(selectedLottoOffer: LottoOffer): LottoOffer? {
-        var found = false
+        var child: Child? = null
+
         for (item in content) {
-            if (found && item is Child)
-                return item.lottoOffer
             if (item.type == 1 && (item as Child).lottoOffer == selectedLottoOffer) {
-                found = true
+                child = item
+                break
+            }
+        }
+        for ((i, item) in content.withIndex()) {
+
+            if (child != null) {
+                if (item.type == 0 && child.father == (item as Header)) {
+                    for ((j, kid) in item.children.withIndex()) {
+                        if (kid.lottoOffer == selectedLottoOffer)
+                            return item.children[j + 1].lottoOffer
+                    }
+                }
             }
         }
         return null
+
+        /*var found = false
+        var child: Child? = null
+        for (item in content) {
+            if (item.type == 1 && (item as Child).lottoOffer == selectedLottoOffer) {
+                child = item
+                break
+            }
+        }
+        found = false
+        for (item in content) {
+            if (child != null) {
+                if (item.type == 0 && child.father == (item as Header)) {
+                    for (kid in item.children) {
+                        if (found) {
+                            return kid.lottoOffer
+                        }
+                        if (kid == child) {
+                            found = true
+                        }
+
+                    }
+                }
+            }
+        }
+        return null*/
     }
 
     fun formatTime(time: Long): String {

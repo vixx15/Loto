@@ -1,6 +1,7 @@
 package com.example.loto.ui
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -57,6 +58,9 @@ import com.example.loto.OffersViewModel
 import com.example.loto.Screens
 import com.example.loto.dto.MyNumber
 import com.example.loto.dto.responseOffers.LottoOffer
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.text.SimpleDateFormat
 import java.util.Timer
 import java.util.TimerTask
@@ -68,37 +72,19 @@ import java.util.TimerTask
 @Composable
 fun OfferDetailScreen(viewModel: OffersViewModel, navController: NavHostController) {
 
-   /* val remainingTime by viewModel.remainingTime
+    val remainingTime by viewModel.remainingTime
+    val selectedOffer = remember { viewModel.selectedLottoOffer }
+    viewModel.getRemTime()
+    Log.w("POZVAOOOOOOO", "POZVAO SAM KORUTINU ")
 
-    LaunchedEffect(remainingTime) {
-        if (remainingTime <= 0) {
-            viewModel.handleExpiredOffer()
-        }
-    }
-
-    DisposableEffect(Unit) {
-        val timer = Timer()
-        val timerTask = object : TimerTask() {
-            override fun run() {
-                viewModel.updateRemainingTime()
-            }
-        }
-        timer.scheduleAtFixedRate(timerTask, 0, 1000)
-
-        onDispose {
-            timer.cancel()
-        }
-    }
-
-*/
     val clickedNumbers = remember { viewModel.clickedNumbers }
 
-    var length = viewModel.selectedLottoOffer.name?.length
+    var length = viewModel.selectedLottoOffer.value.name?.length
     var gameNumbers = 0
 
     if (length != null) {
         gameNumbers =
-            viewModel.selectedLottoOffer.name?.substring(length - 3, length - 1)?.toInt() ?: 0
+            viewModel.selectedLottoOffer.value.name?.substring(length - 3, length - 1)?.toInt() ?: 0
     }
 
     viewModel.getListOfNumbers(
@@ -151,7 +137,7 @@ fun OfferDetailScreen(viewModel: OffersViewModel, navController: NavHostControll
 
 
         Column {
-            TimeAndKoloView(selectedOffer = viewModel.selectedLottoOffer)
+            TimeAndKoloView(selectedOffer.value)
             RandomSelectionView(viewModel = viewModel, onClickButtonRandom =
             { viewModel.getRandomNumbers() }
 
@@ -177,7 +163,6 @@ fun OfferDetailScreen(viewModel: OffersViewModel, navController: NavHostControll
 
 
 }
-
 
 
 @Composable
@@ -297,7 +282,8 @@ fun DropDownMenuView(viewModel: OffersViewModel) {
 }
 
 @Composable
-fun TimeAndKoloView(selectedOffer: LottoOffer) {
+fun TimeAndKoloView(selectedOffer:LottoOffer) {
+
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,

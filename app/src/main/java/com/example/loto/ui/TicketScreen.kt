@@ -59,7 +59,7 @@ fun TicketScreen(viewModel: OffersViewModel, navController: NavHostController) {
 
 
         viewModel.selectedOfferDetailed.value.name?.let { TicketTitleView(gameName = it) }
-        TimeAndKoloView(selectedOffer = viewModel.selectedLottoOffer)
+        TimeAndKoloView(selectedOffer = viewModel.selectedLottoOffer.value)
         ChooseTicketTypeView(viewModel = viewModel)
         SelectedNumbersView(viewModel = viewModel)
 
@@ -146,7 +146,7 @@ fun SystemTicketInfo(viewModel: OffersViewModel) {
             Text(
                 text = viewModel.calculateNumberOfCombinations(
                     viewModel.convertListMyNumbersToListInt(),
-                    viewModel.selectedSystemsNumbers, 0
+                    viewModel.selectedSystemsNumbers, viewModel.numberOfFixes.value
                 ).toString(),
                 modifier = Modifier.padding(4.dp),
                 color = Color.White
@@ -344,7 +344,6 @@ fun InputMoneyAmountView(viewModel: OffersViewModel) {
                     fontSize = 20.sp,
                     color = Color.White
                 )
-                //Text(text = "Dobitak: " + viewModel.getMaksimalanDobitak(), color = Color.White)
             }
         }
     }
@@ -369,10 +368,18 @@ fun SelectedNumbersView(viewModel: OffersViewModel) {
 
 @Composable
 fun BallView(item: MyNumber, viewModel: OffersViewModel) {
+    var clicked = remember { mutableStateOf(false) }
+    var colorIt = remember {
+        mutableStateOf(false)
+    }
     Box(
         modifier = Modifier
             .size(24.dp)
-            .background(Color.Transparent)
+            .background(
+                if (colorIt.value) viewModel.getColor(item.number)
+                    ?: MaterialTheme.colorScheme.onPrimaryContainer else Color.Transparent,
+                shape = CircleShape
+            )
             .padding(4.dp)
             .border(
                 2.dp,
@@ -380,14 +387,34 @@ fun BallView(item: MyNumber, viewModel: OffersViewModel) {
                     ?: MaterialTheme.colorScheme.onPrimaryContainer,
                 CircleShape
             )
-            .aspectRatio(1f),
+            .aspectRatio(1f)
+            .clickable {
+
+                clicked.value = !clicked.value
+                colorIt.value = false
+                if (viewModel.clickedNumbers.size - viewModel.numberOfFixes.value > 2) {
+
+                    if (clicked.value) {
+                        colorIt.value = true
+                        viewModel.numberOfFixes.value++
+                        viewModel.prepareSystemTicketOptions()
+                    }
+                }
+                if (!clicked.value) {
+                    viewModel.numberOfFixes.value--
+
+                    viewModel.prepareSystemTicketOptions()
+                }
+
+            },
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = item.number.toString(),
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = if (colorIt.value) Color.White else Color.Black
         )
     }
 }
@@ -396,7 +423,7 @@ fun BallView(item: MyNumber, viewModel: OffersViewModel) {
 fun TicketTitleView(gameName: String) {
 
     Row(
-
+        // horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
