@@ -45,6 +45,7 @@ import com.example.loto.OffersViewModel
 import com.example.loto.dto.MathUtils.calculateNumberOfCombinations
 import com.example.loto.dto.MyNumber
 import com.example.loto.dto.MySystemTicketSelector
+import java.text.DecimalFormat
 
 
 @Composable
@@ -92,7 +93,6 @@ fun SystemTicketInputParams(viewModel: OffersViewModel) {
 
 @Composable
 fun SystemTicketInfo(viewModel: OffersViewModel) {
-
 
 
     Column {
@@ -144,12 +144,10 @@ fun SystemTicketInfo(viewModel: OffersViewModel) {
 
                 )
             Text(
-                text = viewModel.calculateNumberOfCombinations(viewModel.convertListMyNumbersToListInt(),
-                    viewModel.selectedSystemsNumbers, 0).toString(),
-                //viewModel.calcCombinationNumber(
-                    //viewModel.numberOfCheckedSystems.value,
-                   // viewModel.clickedNumbers.size).toString(),
-
+                text = viewModel.calculateNumberOfCombinations(
+                    viewModel.convertListMyNumbersToListInt(),
+                    viewModel.selectedSystemsNumbers, 0
+                ).toString(),
                 modifier = Modifier.padding(4.dp),
                 color = Color.White
             )
@@ -175,14 +173,14 @@ fun SystemTicketInfo(viewModel: OffersViewModel) {
 
                 )
             Text(
-                text = viewModel.getMaxPotentialPayment(
+                text = viewModel.getFormatedMaxPotentialPayement(),
+                /*viewModel.getMaxPotentialPayment(
                     viewModel.selectedOfferDetailed.value,
                     0,
                     viewModel.convertListMyNumbersToListInt(),
                     viewModel.selectedSystemsNumbers,
                     viewModel.moneyInput.value.toDoubleOrNull() ?: 0.0,
-                    null
-                ).toString(),
+                    null).toString(),*/
                 modifier = Modifier.padding(4.dp),
                 color = Color.White
             )
@@ -307,7 +305,7 @@ fun InputMoneyAmountView(viewModel: OffersViewModel) {
 
     Row(
         modifier = Modifier
-            .padding(10.dp)
+            .padding(30.dp)
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
@@ -320,9 +318,12 @@ fun InputMoneyAmountView(viewModel: OffersViewModel) {
                     text = "Novac za uplatu"
                 )
             },
+
             placeholder = { Text(text = "0.00") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier.width(150.dp)
+            modifier = Modifier
+                .width(130.dp)
+
         )
 
         Button(
@@ -330,16 +331,20 @@ fun InputMoneyAmountView(viewModel: OffersViewModel) {
             colors = ButtonDefaults.buttonColors(
                 backgroundColor = Color(0xFF4CAF50),
                 contentColor = Color.White
-            )
+            ),
+            modifier = Modifier.width(130.dp)
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
                     text = "Uplati",
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     color = Color.White
                 )
-                Text(text = "Dobitak: " + viewModel.getMaksimalanDobitak(), color = Color.White)
+                //Text(text = "Dobitak: " + viewModel.getMaksimalanDobitak(), color = Color.White)
             }
         }
     }
@@ -380,8 +385,8 @@ fun BallView(item: MyNumber, viewModel: OffersViewModel) {
     ) {
         Text(
             text = item.number.toString(),
-            fontSize = 14.sp, // Increase font size
-            fontWeight = FontWeight.Bold, // Make the text bold
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
     }
@@ -391,7 +396,7 @@ fun BallView(item: MyNumber, viewModel: OffersViewModel) {
 fun TicketTitleView(gameName: String) {
 
     Row(
-        // horizontalArrangement = Arrangement.SpaceBetween,
+
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()

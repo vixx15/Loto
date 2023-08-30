@@ -26,7 +26,13 @@ import com.example.loto.expandedList.Header
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.internal.format
+import java.text.DecimalFormat
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.TimeUnit
@@ -216,20 +222,22 @@ class OffersViewModel : ViewModel() {
     }
 
     fun getColor(number: Int): Color? {
-        val differentColors = mapOf(
-            0 to Color(0xFFB39DDB), // Lavender
-            1 to Color(0xFF90CAF9), // Light Blue
-            2 to Color(0xFF81C784), // Light Green
-            3 to Color(0xFFFFCC80), // Peach
-            4 to Color(0xFFFFAB91), // Light Salmon
-            5 to Color(0xFFFFD54F), // Pale Yellow
-            6 to Color(0xFFCE93D8), // Pale Violet
-            7 to Color(0xFF80CBC4), // Turquoise
-            8 to Color(0xFFEF9A9A), // Pale Pink
-            9 to Color(0xFFA5D6A7)
+        val differentColors = when {
 
-        )
-        return differentColors[number / 10]
+
+            number <= 10 -> Color(0xFFB39DDB) // Lavender
+            number <= 20 -> Color(0xFF90CAF9)// Light Blue
+            number <= 30 -> Color(0xFF81C784) // Light Green
+            number <= 40 -> Color(0xFFFFCC80) // Peach
+            number <= 50 -> Color(0xFFFFAB91)// Light Salmon
+            number <= 60 -> Color(0xFFFFD54F)// Pale Yellow
+            number <= 70 -> Color(0xFFCE93D8)// Pale Violet
+            number <= 80 -> Color(0xFF80CBC4)// Turquoise
+            number <= 90 -> Color(0xFFEF9A9A)// Pale Pink
+            else -> Color(0xFFA5D6A7)
+
+        }
+        return differentColors
     }
 
     @Composable
@@ -280,7 +288,7 @@ class OffersViewModel : ViewModel() {
         if (nextDraft != null)
             selectedLottoOffer = nextDraft
         else {
-            selectedLottoOffer=LottoOffer()
+            selectedLottoOffer = LottoOffer()
         }
 
     }
@@ -290,7 +298,16 @@ class OffersViewModel : ViewModel() {
         var uneto = moneyInput.value.toFloatOrNull()
         if (uneto == null)
             uneto = 0.0f
-        return (uneto * selectedOfferDetailed.value.oddValues[clickedNumbers.size - 1].value!!).toString()
+
+        var result = 0.0
+        if (selectedOfferDetailed.value.oddValues[clickedNumbers.size - 1].value != null)
+            result = uneto * selectedOfferDetailed.value.oddValues[clickedNumbers.size - 1].value!!
+        if (result > 10000000)
+            result = 10000000.0
+
+
+
+        return String.format("%.02f", (result))
     }
 
     fun prepareSystemTicketOptions() {
@@ -357,6 +374,24 @@ class OffersViewModel : ViewModel() {
         return total //bruto
     }
 
+    public fun getFormatedMaxPotentialPayement(): String {
+
+        var result = getMaxPotentialPayment(
+            selectedOfferDetailed.value,
+            0,
+            convertListMyNumbersToListInt(),
+            selectedSystemsNumbers,
+            moneyInput.value.toDoubleOrNull() ?: 0.0,
+            null
+        )
+
+        if (result > 10000000)
+            result = 10000000.0
+        var df = DecimalFormat("#.##")
+        var string = df.format(result).toString()
+        return string
+    }
+
     fun findLotoOddValueForBalls(winBallsCount: Long, oddValues: List<OddValues?>): Double {
         for (ov in oddValues) {
             if (ov?.ballNumber?.toLong() === winBallsCount) if (ov != null) {
@@ -412,6 +447,15 @@ class OffersViewModel : ViewModel() {
             }
         }
         return null
+    }
+
+    fun formatTime(time: Long): String {
+        if (Date(time).day != Date().day) {
+            return SimpleDateFormat("d.M.").format(Date(time)) + "\n" + SimpleDateFormat("HH:mm").format(
+                Date(time)
+            )
+        }
+        return SimpleDateFormat("HH:mm").format(Date(time))
     }
 
 

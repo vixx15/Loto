@@ -78,7 +78,7 @@ fun ChildView(item: Base, viewModel: OffersViewModel, onChildClick: () -> Unit) 
 
             Text(
                 text = (item as Child).lottoOffer.time?.let {
-                    SimpleDateFormat("HH:mm").format(Date(it))
+                    viewModel.formatTime(it)
                 } ?: "N/A", Modifier.padding(10.dp))
 
             Text(

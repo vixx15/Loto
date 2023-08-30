@@ -8,7 +8,7 @@ data class LottoOfferDetailed (
     @SerializedName("eventId"            ) var eventId            : Int?                 = null,
     @SerializedName("gameId"             ) var gameId             : Int?                 = null,
     @SerializedName("name"               ) var name               : String?              = null,
-    @SerializedName("time"               ) var time               : Long?                 = null,
+    @SerializedName("time"               ) var time               : Long?                = null,
     @SerializedName("countryId"          ) var countryId          : Int?                 = null,
     @SerializedName("extraRoundCode"     ) var extraRoundCode     : String?              = null,
     @SerializedName("ballsTotalNumber"   ) var ballsTotalNumber   : Int?                 = null,
